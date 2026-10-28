@@ -1,0 +1,21 @@
+{
+  "buildPath": ".",
+  "stack": "python3",
+  "command": "sh -c 'python3 -m uvicorn main:app --host 0.0.0.0 --port ${X_ZOHO_CATALYST_LISTEN_PORT:-9000}'",
+  "memory": 512,
+  "env_variables": {
+    "GRIDPULSE_STORAGE_MODE": "catalyst",
+    "GRIDPULSE_STRATUS_BUCKET": "YOUR-STRATUS-BUCKET",
+    "GRIDPULSE_DATASTORE_UPLOADS_TABLE": "GridPulseTelemetryUploads",
+    "GRIDPULSE_DATASTORE_FORECASTS_TABLE": "GridPulseForecastLogs",
+    "CORS_ORIGINS": "https://YOUR-SLATE-DOMAIN",
+    "QUICKML_ENDPOINT_URL": "",
+    "QUICKML_ENDPOINT_KEY": "",
+    "QUICKML_ORG_ID": "",
+    "QUICKML_ENVIRONMENT": "Production",
+    "ZOHO_OAUTH_TOKEN_URL": "https://accounts.zoho.in/oauth/v2/token",
+    "QUICKML_REFRESH_TOKEN": "",
+    "QUICKML_CLIENT_ID": "",
+    "QUICKML_CLIENT_SECRET": ""
+  }
+}

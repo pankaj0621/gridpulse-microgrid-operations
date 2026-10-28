@@ -1,0 +1,32 @@
+{
+  "tables": [
+    {
+      "name": "GridPulseTelemetryUploads",
+      "purpose": "Upload audit metadata; original CSV objects are stored in Stratus.",
+      "columns": [
+        { "name": "UploadId", "type": "Text", "mandatory": true, "unique": true },
+        { "name": "FileName", "type": "Var Char", "max_length": 255, "mandatory": true },
+        { "name": "ObjectKey", "type": "Text", "mandatory": true },
+        { "name": "RowCount", "type": "Int", "mandatory": true },
+        { "name": "MissingValuesFilled", "type": "Int", "mandatory": true },
+        { "name": "LatestTimestamp", "type": "Text", "mandatory": true },
+        { "name": "CreatedAt", "type": "Text", "mandatory": true }
+      ]
+    },
+    {
+      "name": "GridPulseForecastLogs",
+      "purpose": "One audit row per successful forecast request.",
+      "columns": [
+        { "name": "ForecastId", "type": "Text", "mandatory": true, "unique": true },
+        { "name": "CreatedAt", "type": "Text", "mandatory": true },
+        { "name": "ModelSource", "type": "Var Char", "max_length": 32, "mandatory": true },
+        { "name": "PointCount", "type": "Int", "mandatory": true },
+        { "name": "StorageHours", "type": "Int", "mandatory": true },
+        { "name": "CriticalAlerts", "type": "Int", "mandatory": true },
+        { "name": "ScenarioOnly", "type": "Boolean", "mandatory": true },
+        { "name": "FirstTimestamp", "type": "Text", "mandatory": true },
+        { "name": "LatestTimestamp", "type": "Text", "mandatory": true }
+      ]
+    }
+  ]
+}
