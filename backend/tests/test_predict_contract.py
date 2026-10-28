@@ -1,9 +1,12 @@
+import os
 import sys
 import unittest
 from pathlib import Path
+from unittest.mock import patch
 
 import numpy as np
 import pandas as pd
+import requests
 
 PROJECT_ROOT = Path(__file__).resolve().parents[2]
 if str(PROJECT_ROOT) not in sys.path:
@@ -13,6 +16,13 @@ from predict import predict
 
 
 class PredictContractTests(unittest.TestCase):
+    def setUp(self):
+        self.environment = patch.dict(os.environ, {"QUICKML_ENDPOINT_URL": ""})
+        self.environment.start()
+
+    def tearDown(self):
+        self.environment.stop()
+
     def test_sample_input_keeps_one_finite_prediction_per_timestamp(self):
         sample = pd.read_csv(PROJECT_ROOT / "sample_test_input.csv")
         predictions = predict(sample)
@@ -42,6 +52,13 @@ class PredictContractTests(unittest.TestCase):
         })
         with self.assertRaisesRegex(ValueError, "invalid timestamp"):
             predict(data)
+
+    def test_configured_quickml_failure_does_not_silently_use_baseline(self):
+        sample = pd.read_csv(PROJECT_ROOT / "sample_test_input.csv")
+        with patch.dict(os.environ, {"QUICKML_ENDPOINT_URL": "https://quickml.example/predict"}), \
+             patch("predict._quickml_predictions", side_effect=requests.ConnectionError("endpoint unavailable")):
+            with self.assertRaisesRegex(requests.ConnectionError, "endpoint unavailable"):
+                predict(sample)
 
 
 if __name__ == "__main__":

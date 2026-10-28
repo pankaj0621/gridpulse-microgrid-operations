@@ -4,11 +4,9 @@ from __future__ import annotations
 
 import argparse
 import sys
-import warnings
 
 import numpy as np
 import pandas as pd
-import requests
 
 from backend.app.quickml_client import QuickMLClient, QuickMLConfig
 
@@ -48,14 +46,7 @@ def predict(input_df: pd.DataFrame) -> np.ndarray:
     features, timestamps = _prepare_input(input_df)
 
     if QuickMLConfig.from_environment().enabled:
-        try:
-            return _quickml_predictions(features)
-        except (requests.RequestException, ValueError, TypeError) as error:
-            warnings.warn(
-                f"QuickML request failed; using the starter baseline instead ({error}).",
-                RuntimeWarning,
-                stacklevel=2,
-            )
+        return _quickml_predictions(features)
 
     hours = timestamps.dt.hour
     base_load = 120.0 + 30.0 * np.sin(2 * np.pi * (hours - 6) / 24)
