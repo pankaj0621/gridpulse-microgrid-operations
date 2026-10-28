@@ -8,7 +8,7 @@ import requests
 from dotenv import load_dotenv
 from fastapi import FastAPI, File, HTTPException, Request, UploadFile
 from fastapi.middleware.cors import CORSMiddleware
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, ValidationError
 
 from app.dispatch import evaluate_dispatch
 from app.catalyst_storage import (
@@ -141,7 +141,12 @@ def quickml_predict(rows: list[dict[str, Any]]) -> list[float]:
 
 
 @app.post("/api/forecast")
-def forecast(forecast_request: ForecastRequest, request: Request) -> dict[str, Any]:
+async def forecast(request: Request) -> dict[str, Any]:
+    try:
+        forecast_request = ForecastRequest.model_validate_json(await request.body())
+    except ValidationError as error:
+        raise HTTPException(status_code=422, detail="Request body must be valid forecast JSON.") from error
+
     raw_rows = [row.model_dump() for row in forecast_request.rows]
     try:
         rows, filled = clean_forecast_rows(raw_rows)

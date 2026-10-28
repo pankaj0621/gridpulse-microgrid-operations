@@ -32,7 +32,7 @@ export async function requestForecast(
   };
   const response = await fetch(`${API_BASE}/api/forecast`, {
     method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
+    headers: { 'Content-Type': 'text/plain;charset=UTF-8' },
   body: JSON.stringify({ rows: weatherRows, settings: backendSettings, scenario_only: stagedRows?.length !== 24 }),
     signal,
   });

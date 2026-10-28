@@ -1,4 +1,5 @@
 import os
+import json
 import tempfile
 import unittest
 from unittest.mock import patch
@@ -67,6 +68,25 @@ class ApiContractTests(unittest.TestCase):
         self.assertIn("illustrative local scenario", payload["notice"])
         self.assertEqual(payload["predictions"][18]["mode"], "renewable-storage")
         self.assertEqual(self.client.get("/api/telemetry/summary").json()["forecast_runs"], 1)
+
+    def test_forecast_accepts_cors_safelisted_text_json(self):
+        rows = [
+            {
+                "timestamp": f"2026-10-24 {hour:02d}:00:00",
+                "ambient_temp_c": 25,
+                "humidity_pct": 55,
+                "solar_irradiance_wm2": 100,
+            }
+            for hour in range(24)
+        ]
+        response = self.client.post(
+            "/api/forecast",
+            content=json.dumps({"rows": rows, "scenario_only": True}),
+            headers={"Content-Type": "text/plain;charset=UTF-8", "Origin": "http://localhost:5173"},
+        )
+        self.assertEqual(response.status_code, 200, response.text)
+        self.assertEqual(response.headers.get("access-control-allow-origin"), "http://localhost:5173")
+        self.assertEqual(len(response.json()["predictions"]), 24)
 
     def test_forecast_fails_explicitly_when_quickml_url_has_incomplete_auth(self):
         rows = [
