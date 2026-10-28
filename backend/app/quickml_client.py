@@ -89,6 +89,7 @@ def prepare_model_features(rows: list[dict[str, Any]]) -> list[dict[str, Any]]:
 
         weekday = timestamp.weekday()
         prepared.append({
+            "timestamp": raw_timestamp.strip(),
             "ambient_temp_c": row.get("ambient_temp_c"),
             "humidity_pct": row.get("humidity_pct"),
             "solar_irradiance_wm2": row.get("solar_irradiance_wm2"),
@@ -134,6 +135,8 @@ class QuickMLClient:
         response.raise_for_status()
         payload = response.json()
         predictions = payload.get("predictions") if isinstance(payload, dict) else None
+        if not isinstance(predictions, list) and isinstance(payload, dict):
+            predictions = payload.get("result")
         if not isinstance(predictions, list) or len(predictions) != len(rows):
             raise ValueError("QuickML returned a prediction count that does not match the input.")
 

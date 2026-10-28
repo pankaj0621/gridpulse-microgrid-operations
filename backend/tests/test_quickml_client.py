@@ -50,6 +50,7 @@ class QuickMLClientTests(unittest.TestCase):
         self.assertEqual(inference_call.args[0], QUICKML_ENV["QUICKML_ENDPOINT_URL"])
         self.assertEqual(inference_call.kwargs["json"], {"data": [
             {
+                "timestamp": "2026-10-24 10:00:00",
                 "ambient_temp_c": 20,
                 "humidity_pct": 45,
                 "solar_irradiance_wm2": 100,
@@ -59,6 +60,7 @@ class QuickMLClientTests(unittest.TestCase):
                 "is_weekend": 1,
             },
             {
+                "timestamp": "2026-10-25 20:00:00",
                 "ambient_temp_c": 21,
                 "humidity_pct": 48,
                 "solar_irradiance_wm2": 200,
@@ -73,6 +75,25 @@ class QuickMLClientTests(unittest.TestCase):
         self.assertEqual(inference_call.kwargs["headers"]["X-QUICKML-ENDPOINT-KEY"], "endpoint-key")
         self.assertEqual(inference_call.kwargs["headers"]["CATALYST-ORG"], "org-123")
         self.assertEqual(inference_call.kwargs["headers"]["Environment"], "Development")
+
+    def test_reads_catalyst_result_field_for_predictions(self):
+        session = Mock()
+        token_response = Mock()
+        token_response.json.return_value = {"access_token": "access-123", "expires_in": 3600}
+        prediction_response = Mock()
+        prediction_response.json.return_value = {
+            "result": [111.5],
+            "pipeLineType": "Prediction",
+            "status": "Success",
+        }
+        session.post.side_effect = [token_response, prediction_response]
+
+        with patch.dict(os.environ, QUICKML_ENV, clear=True):
+            predictions = QuickMLClient.from_environment(session=session).predict([
+                {"timestamp": "2026-10-24 10:00:00", "ambient_temp_c": 20, "humidity_pct": 45, "solar_irradiance_wm2": 100}
+            ])
+
+        self.assertEqual(predictions, [111.5])
 
     def test_reuses_unexpired_access_token_for_multiple_batches(self):
         session = Mock()

@@ -145,11 +145,11 @@ class CatalystStorage:
         visited_tokens: set[str] = set()
         while True:
             page = table.get_paged_rows(next_token, max_rows=200)
-            rows.extend(page.get("content", []))
-            if not page.get("more_records"):
-                return rows
+            rows.extend(page.get("data", []))
             token = page.get("next_token")
-            if not token or token in visited_tokens:
+            if not token:
+                return rows
+            if token in visited_tokens:
                 raise RuntimeError("Catalyst Data Store returned an invalid pagination token.")
             visited_tokens.add(token)
             next_token = token

@@ -17,7 +17,7 @@ class FakeTable:
     def get_paged_rows(self, next_token=None, max_rows=200):
         if self.pages:
             return self.pages.pop(0)
-        return {"content": [], "more_records": False}
+        return {"data": [], "next_token": None}
 
 
 class FakeApp:
@@ -70,15 +70,21 @@ class CatalystStorageTests(unittest.TestCase):
 
     def test_summary_pages_upload_rows_and_aggregates_counts(self):
         uploads = FakeTable([
-            {"content": [{"RowCount": 24, "LatestTimestamp": "2026-10-24T23:00:00"}], "more_records": True, "next_token": "page-2"},
-            {"content": [{"RowCount": 10, "LatestTimestamp": "2026-10-25T09:00:00"}], "more_records": False},
+            {"data": [{"RowCount": 24, "LatestTimestamp": "2026-10-24T23:00:00"}], "next_token": "page-2"},
+            {"data": [{"RowCount": 10, "LatestTimestamp": "2026-10-25T09:00:00"}], "next_token": None},
         ])
-        app = FakeApp({"GridPulseTelemetryUploads": uploads, "GridPulseForecastLogs": FakeTable()})
+        forecasts = FakeTable([{
+            "data": [{"CriticalAlerts": 2}],
+            "next_token": None,
+        }])
+        app = FakeApp({"GridPulseTelemetryUploads": uploads, "GridPulseForecastLogs": forecasts})
         env = {"GRIDPULSE_STRATUS_BUCKET": "gridpulse-data"}
         with patch.dict(os.environ, env, clear=True):
             summary = CatalystStorage(request=object(), app=app).telemetry_summary()
 
         self.assertEqual(summary["uploaded_rows"], 34)
+        self.assertEqual(summary["forecast_runs"], 1)
+        self.assertEqual(summary["critical_alerts_logged"], 2)
         self.assertEqual(summary["last_timestamp"], "2026-10-25T09:00:00")
         self.assertEqual(summary["training_rows"], 4000)
         self.assertEqual(summary["test_rows"], 1000)
